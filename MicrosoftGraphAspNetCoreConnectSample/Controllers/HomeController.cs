@@ -76,6 +76,20 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
         }
 
         [AllowAnonymous]
+        public async Task<IActionResult> Messages()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                // Initialize the GraphServiceClient.
+                var graphClient = _graphServiceClientFactory.GetAuthenticatedGraphClient((ClaimsIdentity)User.Identity);
+
+                ViewData["Response"] = await GraphService.GetMessagesJson(graphClient, HttpContext);
+            }
+            
+            return View();
+        }
+
+        [AllowAnonymous]
         public IActionResult About()
         {
             return View();

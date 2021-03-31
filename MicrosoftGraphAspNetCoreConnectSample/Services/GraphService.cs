@@ -52,6 +52,32 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Services
             }
         }
 
+        public static async Task<string> GetMessagesJson(GraphServiceClient graphClient, HttpContext httpContext)
+        {
+            try
+            {
+                // Load user profile.
+                var user = await graphClient.Me.Messages.Request().GetAsync();
+                return JsonConvert.SerializeObject(user, Formatting.Indented);
+            }
+            catch (ServiceException e)
+            {
+                switch (e.Error.Code)
+                {
+                    case "Request_ResourceNotFound":
+                    case "ResourceNotFound":
+                    case "ErrorItemNotFound":
+                    case "AuthenticationFailure":
+                        return JsonConvert.SerializeObject(new { e.Error.Message }, Formatting.Indented);
+                    case "TokenNotFound":
+                        await httpContext.ChallengeAsync();
+                        return JsonConvert.SerializeObject(new { e.Error.Message }, Formatting.Indented);
+                    default:
+                        return JsonConvert.SerializeObject(new { Message = "An unknown error has occurred." }, Formatting.Indented);
+                }
+            }
+        }
+
         // Load user's profile picture in base64 string.
         public static async Task<string> GetPictureBase64(GraphServiceClient graphClient, string email, HttpContext httpContext)
         {
